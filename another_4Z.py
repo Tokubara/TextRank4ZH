@@ -1,18 +1,18 @@
 #-*- encoding:utf-8 -*-
-from __future__ import print_function
+# from __future__ import print_function
 
-import sys
-try:
-    reload(sys)
-    sys.setdefaultencoding('utf-8')
-except:
-    pass
+# import sys
+# try:
+#     reload(sys)
+#     sys.setdefaultencoding('utf-8')
+# except:
+#     pass
 
 import codecs
 from textrank4zh import TextRank4Keyword, TextRank4Sentence
 import sys
 
-import pdb; pdb.set_trace()
+# import pdb; pdb.set_trace()
 text = codecs.open("期末报告.md", 'r', 'utf-8').read()
 tr4w = TextRank4Keyword()
 

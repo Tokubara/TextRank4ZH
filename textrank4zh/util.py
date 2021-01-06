@@ -19,8 +19,8 @@ try:
 except:
     pass
     
-sentence_delimiters = ['?', '!', ';', '？', '！', '。', '；', '……', '…', '\n']
-allow_speech_tags = ['an', 'i', 'j', 'l', 'n', 'nr', 'nrfg', 'ns', 'nt', 'nz', 't', 'v', 'vd', 'vn', 'eng']
+sentence_delimiters = {'?', '.', '!', ';', '？', '！', '。', '；', '……', '…', '\n'} # 未考虑引号
+allow_speech_tags = {'an', 'i', 'j', 'l', 'n', 'nr', 'nrfg', 'ns', 'nt', 'nz', 't', 'v', 'vd', 'vn', 'eng'}
 
 PY2 = sys.version_info[0] == 2
 if not PY2:
@@ -77,11 +77,9 @@ def debug(*args):
         print( ' '.join([str(arg) for arg in args]) )
 
 class AttrDict(dict):
-    """Dict that can get attribute by dot"""
-    def __init__(self, *args, **kwargs):
-        super(AttrDict, self).__init__(*args, **kwargs)
-        self.__dict__ = self
-
+    __slot__=()
+    __getattr__=dict.__getitem__
+    __setattr__=dict.__setitem__
 
 def combine(word_list, window = 2):
     """构造在window下的单词组合，用来构造单词之间的边。

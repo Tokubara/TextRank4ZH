@@ -11,7 +11,8 @@ import jieba.posseg as pseg
 import codecs
 import os
 
-from . import util
+# from . import util
+import util
 
 def get_default_stop_words_file():
     d = os.path.dirname(os.path.realpath(__file__))
@@ -116,6 +117,13 @@ class Segmentation(object):
         self.ss = SentenceSegmentation(delimiters=delimiters)
         
     def segment(self, text, lower = False):
+        '''
+        返回util.AttrDict, 包括: 
+        sentences:句列表,即根据delimiters分隔的
+        words_no_filter:分好词的嵌套列表
+        words_no_stop_words:去除了停词
+        words_all_filters:去除了停词和词性不在allow_speech_tags中的词
+        '''
         text = util.as_text(text)
         sentences = self.ss.segment(text) # 根据delim分好词
         words_no_filter = self.ws.segment_sentences(sentences=sentences,
