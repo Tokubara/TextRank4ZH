@@ -60,7 +60,7 @@ class TextRank4Sentence(object):
         self.words_no_filter = result.words_no_filter
         self.words_no_stop_words = result.words_no_stop_words
         self.words_all_filters   = result.words_all_filters
-
+        # 与word的analyze相比, seg实例和处理过程完全没有区别, 区别是传参
         options = ['no_filter', 'no_stop_words', 'all_filters']
         if source in options:
             _source = result['words_'+source]

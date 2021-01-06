@@ -29,7 +29,7 @@ class TextRank4Keyword(object):
         self.words_all_filters    --  保留words_no_stop_words中指定词性的单词而得到的两级列表。
         """
         self.text = ''
-        self.keywords = None
+        self.keywords = None # 在analyze被赋值, 长这样[{'word': '国民革命军', 'weight': 0.0001555855201742558}, {'word': '集团军', 'weight': 0.0001555855201742558}], 从按得分高到低排序的
         
         self.seg = Segmentation(stop_words_file=stop_words_file, 
                                 allow_speech_tags=allow_speech_tags, 
@@ -106,16 +106,16 @@ class TextRank4Keyword(object):
             if len(item.word) >= word_min_len:
                 result.append(item)
                 count += 1
-        return result
+        return result # 我感觉这个函数用itertools一行就能写完, itertools.islice(filter(lambda x:len(x)>word_min_len,self.keywords),0,num)
     
     def get_keyphrases(self, keywords_num = 12, min_occur_num = 2): 
         """获取关键短语。
         获取 keywords_num 个关键词构造的可能出现的短语，要求这个短语在原文本中至少出现的次数为min_occur_num。
-
+        实现思路非常简单, 就是看有没有几个词连着出现的, 同时是关键词, 那么它们就是关键短语, 不过会过滤掉次数<min_occur_num(默认为2)
         Return:
         关键短语的列表。
         """
-        keywords_set = set([ item.word for item in self.get_keywords(num=keywords_num, word_min_len = 1)])
+        keywords_set = set([ item.word for item in self.get_keywords(num=keywords_num, word_min_len = 1)]) # 只取get_keywords的词的部分
         keyphrases = set()
         for sentence in self.words_no_filter:
             one = []
@@ -129,8 +129,8 @@ class TextRank4Keyword(object):
                         continue
                     else:
                         one = []
-            # 兜底
-            if len(one) >  1:
+
+            if len(one) >  1: # 没存干净, 把最后一点存了
                 keyphrases.add(''.join(one))
 
         return [phrase for phrase in keyphrases 
