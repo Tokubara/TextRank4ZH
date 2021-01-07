@@ -74,7 +74,7 @@ class PageRank(abc.ABC):
 class TextRank4Keyword(PageRank):
     def build_matrix(self, text_processor):
         self.matrix = self.build_word_cooccurence_matrix(len(text_processor.num2word[2]),text_processor.doc_list_in_num[2])
-        self.num2item = text_processor.num2word
+        self.num2item = text_processor.num2word[2]
             # self.text_processor = text_processor # 这个地方存在共用, 可能会有问题,
     def analyze(self, text_processor):
         self.build_matrix(text_processor)
