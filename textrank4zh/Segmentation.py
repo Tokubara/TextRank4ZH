@@ -12,6 +12,7 @@ import codecs
 import os
 from operator import attrgetter
 import itertools
+from TextProcessor import TextProcessor
 
 # from . import util
 import util
@@ -23,14 +24,14 @@ def get_default_stop_words_file():
 class WordSegmentation(object):
     """ 将一句话或者一个句列表分词, 可选属性为停用词, 词性词表, 有两个函数, segment将一句话(str)分为词(有一些选项, 停用词, 过滤词性), segment_sentences, 接受一个sentences列表, 批量转换, 两个函数的参数完全一样, 仅仅是批量转换的关系 """
     
-    def __init__(self, stop_words_file = None, allow_speech_tags = util.allow_speech_tags):
+    def __init__(self, stop_words_file = None, allow_speech_tags = TextProcessor.allow_speech_tags):
         """
         Keyword arguments:
         stop_words_file    -- 保存停止词的文件路径，utf8编码，每行一个停止词。若不是str类型，则使用默认的停止词
         allow_speech_tags  -- 词性列表，用于过滤
         """     
         
-        allow_speech_tags = [util.as_text(item) for item in allow_speech_tags]
+        # allow_speech_tags = [util.as_text(item) for item in allow_speech_tags]
 
         self.default_speech_tag_filter = allow_speech_tags
         self.stop_words = set()
@@ -44,10 +45,10 @@ class WordSegmentation(object):
         # use_stop_words = True, use_speech_tags_filter = False (旧参数)
         """对一段文本进行分词(jieba.posseg.cut)，是一个generator函数, 得到的是, 去除特殊符号后的分词的map对象, 去除停用词的map对象, 去除词性不对的词的map对象
         """
-        text = util.as_text(text) # 只是一句话
+        # text = util.as_text(text) # 只是一句话
         words_result = pseg.cut(text) # 得到的是一个generator
 
-        words_result = list(filter(lambda x:util.is_all_chinese(x.word),words_result)) # 去除含有中文以外字符,去除空格,去除为空的
+        words_result = list(filter(lambda x:TextProcessor.is_all_chinese(x.word),words_result)) # 去除含有中文以外字符,去除空格,去除为空的
         yield map(attrgetter("word"),words_result)
         words_result = list(filter(lambda x: x.word not in self.stop_words, words_result))
         yield map(attrgetter("word"),words_result)
@@ -68,20 +69,19 @@ class WordSegmentation(object):
 class SentenceSegmentation(object):
     """ 分句 """
     
-    def __init__(self, delimiters=util.sentence_delimiters,min_sentence_len=4):
+    def __init__(self, delimiters=TextProcessor.sentence_delimiters,min_sentence_len=4):
         """
         Keyword arguments:
         delimiters -- 可迭代对象，用来拆分句子
         """
-        self.delimiters = set([util.as_text(item) for item in delimiters])
+        # self.delimiters = set([util.as_text(item) for item in delimiters])
         self.min_sentence_len=min_sentence_len
     
     def segment(self, text):
         '''返回的是句子的generator'''
-        # res = [util.as_text(text)] # 初始只有一个元素
         res = [text]
-        util.debug(res)
-        util.debug(self.delimiters)
+        # util.debug(res)
+        # util.debug(self.delimiters)
 
         for sep in self.delimiters:
             text, res = res, []
@@ -92,8 +92,8 @@ class SentenceSegmentation(object):
 class Segmentation(object):
     
     def __init__(self, stop_words_file = None, 
-                    allow_speech_tags = util.allow_speech_tags,
-                    delimiters = util.sentence_delimiters, min_sentence_len=4):
+                    allow_speech_tags = TextProcessor.allow_speech_tags,
+                    delimiters = TextProcessor.sentence_delimiters, min_sentence_len=4):
         """
         Keyword arguments:
         stop_words_file -- 停止词文件

@@ -20,8 +20,7 @@ try:
 except:
     pass
     
-sentence_delimiters = {'?', '.', '!', ';', '？', '！', '。', '；', '……', '…', '\n'} # 未考虑引号
-allow_speech_tags = {'an', 'i', 'j', 'l', 'n', 'nr', 'nrfg', 'ns', 'nt', 'nz', 't', 'v', 'vd', 'vn', 'eng'}
+
 
 PY2 = sys.version_info[0] == 2
 if not PY2:
@@ -64,62 +63,11 @@ else:
 
 __DEBUG = None
 
-def is_all_chinese(str):
-    '''判断字符串是否全由中文构成'''
-    return all(map(lambda char:'\u4e00' <= char <= '\u9fa5', str))
 
-def word2num(doc_list):
-    '''
-    接受双层iterable, 展开以后长这样[['我','喜欢'],['但','我','不喜欢']]
-    返回num2word, word2num, doc_list_in_num, 前面是2个字典, 最后是将词转化为数的列表
-    '''
-    # word_list
-    # 首先需要一个词表
-    word_set=set(itertools.chain.from_iterable(doc_list))
-    word_num=enumerate(word_set)
-    #  词到数的映射
-    num2word = dict(word_num)
-    word2num=dict(zip(num2word.values(),num2word.keys()))
-    # 将列表转换为数
-    doc_list_in_num=[list(map(lambda x:word2num[x], doc)) for doc in doc_list] # 这里要不要返回list?
-    return num2word, word2num, doc_list_in_num
 
-def build_word_cooccurence_matrix(n,doc_list_in_num,window=2):
-    '''接受的已经是一个数的列表
-    n表示总的状态数
-    '''
-    matrix_size = n
-    word_matrix=np.zeros((matrix_size,matrix_size))
-    for doc in doc_list_in_num:
-        for i in range(len(doc)-1):
-            for j in range(i+1,min(i+1+window,len(doc))):
-                word_matrix[min(doc[i],doc[j]),max(doc[i],doc[j])]+=1
-    word_matrix=np.maximum(word_matrix,word_matrix.T)
-    return word_matrix
 
-def convert2pagerank_matrix(matrix,rsp=0.15):
-    '''
-    通用方法, 将一个不规则的matrix(必须是方阵), 这个matrix的列可能全为0, 列和也不唯一的转化为pagerank矩阵, 列和为1. 列表示状态的转移概率.
-    '''
-    n=matrix.shape[0]
-    matrix[:,np.all(matrix==0,axis=0)]=1 # 全0列的转换
-    matrix=matrix/np.sum(matrix,axis=0) # 单位化
-    matrix=matrix*(1-rsp)+rsp/n # 概率
-    return matrix
 
-def solve_pagerank_matrix(matrix,tol=1e-6):
-    '''
-    用幂法解pagerank方程
-    '''
-    n=matrix.shape[0]
-    pr=np.ones(n)
-    pr=pr/n
-    while True:
-        new_pr=matrix@pr
-        if(np.sum((new_pr-pr)**2)<tol):
-            break
-        pr=new_pr
-    return pr/np.sum(pr) # 按理来说, pr应该保持和为1,但是舍入误差保证不了
+
 
 #  build_word_cooccurence_matrix的测试
 # build_word_cooccurence_matrix([[1,7,3,2,9,5,4],[3,1,2,5,4],[5,3,7,1,9]])
