@@ -13,12 +13,10 @@ import numpy as np
 # from . import util
 import util
 import itertools
-from Segmentation import Segmentation
 from collections import namedtuple
 from TextProcessor import TextProcessor
 import codecs
 import abc
-# import Segmentation
 
 Item=namedtuple("Item",["item","score"])
 
