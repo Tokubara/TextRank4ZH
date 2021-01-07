@@ -11,6 +11,7 @@ import jieba.posseg as pseg
 import codecs
 import os
 from operator import attrgetter
+import itertools
 
 # from . import util
 import util
@@ -39,52 +40,30 @@ class WordSegmentation(object):
         for word in codecs.open(self.stop_words_file, 'r', 'utf-8', 'ignore'):
             self.stop_words.add(word.strip())
     
-    def segment(self, text, lower = False, use_stop_words = True, use_speech_tags_filter = False):
-        """对一段文本进行分词(jieba.posseg.cut)，返回list类型的分词结果, 做了这些处理: 去除特殊符号(词性为x的词), 去空, 去停用词
-
-        Keyword arguments:
-        lower                  -- 是否将单词小写（针对英文）
-        use_stop_words         -- 若为True，则利用停止词集合来过滤（去掉停止词）
-        use_speech_tags_filter -- 是否基于词性进行过滤。若为True，则使用self.default_speech_tag_filter过滤。否则，不过滤。    
+    def segment(self, text, lower = False):
+        # use_stop_words = True, use_speech_tags_filter = False (旧参数)
+        """对一段文本进行分词(jieba.posseg.cut)，是一个generator函数, 得到的是, 去除特殊符号后的分词的map对象, 去除停用词的map对象, 去除词性不对的词的map对象
         """
         text = util.as_text(text) # 只是一句话
         words_result = pseg.cut(text) # 得到的是一个generator
-        # 这里得先做, 否则不会保留分词信息
-        if use_speech_tags_filter == True:
-            # jieba_result = [w for w in jieba_result if w.flag in self.default_speech_tag_filter]
-            words_result = filter(lambda x:x.flag in self.default_speech_tag_filter, words_result)
-        # else:
-            # jieba_result = [w for w in jieba_result]
 
-        # 去除特殊符号
-        # 含有中文以外的词都去掉
-        words_result = filter(lambda x:len(x)>0 and util.is_all_chinese(x),map(lambda x: x.word.strip(),words_result)) # 去除含有中文以外字符,去除空格,去除为空的
-        if use_stop_words:
-            words_result = filter(lambda x: x not in self.stop_words, words_result)
-        # word_list = [w.word.strip() for w in jieba_result if w.flag!='x']
-        # word_list = [word for word in word_list if len(word)>0]
+        words_result = list(filter(lambda x:util.is_all_chinese(x.word),words_result)) # 去除含有中文以外字符,去除空格,去除为空的
+        yield map(attrgetter("word"),words_result)
+        words_result = list(filter(lambda x: x.word not in self.stop_words, words_result))
+        yield map(attrgetter("word"),words_result)
+        words_result = list(filter(lambda x:x.flag in self.default_speech_tag_filter, words_result))
+        yield map(attrgetter("word"),words_result)
         
-        # if lower:
-        #     word_list = [word.lower() for word in word_list]
-
-        # if use_stop_words:
-        #     word_list = [word.strip() for word in word_list if word.strip() not in self.stop_words]
-
-        return list(words_result)
-        
-    def segment_sentences(self, sentences, lower=True, use_stop_words=True, use_speech_tags_filter=False):
-        """将列表sequences中的每个元素/句子转换为由单词构成的列表。大概长这样: [['从', '施剑翘', '杀', '孙传芳', '案', '看', ...], ['解题'], ['民国时期', '是', '司法', '史', '一个', '特殊', ...], ['有', '如下', '原因'], ['中国', '有着', '几千年', '的', '宗法', '礼教', ...], ['到', '清末', '民初', '司法', '领域', '发生', ...], ...]
-        
-        sequences -- 列表，每个元素是一个句子（字符串类型）
+    def segment_sentences(self, sentences, lower=False, need=(0,1,2)):
+        """将列表sequences中的每个元素/句子转换为由单词构成的列表。
+        返回一个list, 每个元素是嵌套generator, 第一层是每个句子, 第二层是词, 展开长这样: [['从', '施剑翘', '杀', '孙传芳', '案', '看', ...], ['解题'], ['民国时期', '是', '司法', '史', '一个', '特殊', ...], ['有', '如下', '原因'], ['中国', '有着', '几千年', '的', '宗法', '礼教', ...], ['到', '清末', '民初', '司法', '领域', '发生', ...], ...]
         """
-        
-        res = []
-        for sentence in sentences: # 这里本来可以写成一个listcomp
-            res.append(self.segment(text=sentence, 
-                                    lower=lower, 
-                                    use_stop_words=use_stop_words, 
-                                    use_speech_tags_filter=use_speech_tags_filter))
-        return res
+        gen_list=[self.segment(sentence) for sentence in sentences]
+        res_list=[None,None,None]
+        res_list[0]=(next(i) for i in gen_list)
+        res_list[1]=(next(i) for i in gen_list)
+        res_list[2]=(next(i) for i in gen_list)
+        return res_list
         
 class SentenceSegmentation(object):
     """ 分句 """
@@ -98,8 +77,9 @@ class SentenceSegmentation(object):
         self.min_sentence_len=min_sentence_len
     
     def segment(self, text):
-        res = [util.as_text(text)] # 初始只有一个元素
-        
+        '''返回的是句子的generator'''
+        # res = [util.as_text(text)] # 初始只有一个元素
+        res = [text]
         util.debug(res)
         util.debug(self.delimiters)
 
@@ -107,8 +87,7 @@ class SentenceSegmentation(object):
             text, res = res, []
             for seq in text:
                 res += seq.split(sep)
-        res = [s.strip() for s in res if len(s.strip()) > self.min_sentence_len] # 去除空白, 我总感觉这里还需要filter
-        return res 
+        return filter(lambda x:len(x)>0, map(lambda x:x.strip(),res)) # 去除空白, 我总感觉这里还需要filter
         
 class Segmentation(object):
     
@@ -131,30 +110,25 @@ class Segmentation(object):
         words_no_stop_words:去除了停词
         words_all_filters:去除了停词和词性不在allow_speech_tags中的词
         '''
-        text = util.as_text(text)
-        sentences = self.ss.segment(text) # 根据delim分好词
-        words_no_filter = self.ws.segment_sentences(sentences=sentences,
-                                                    lower = lower, 
-                                                    use_stop_words = False,
-                                                    use_speech_tags_filter = False)
-        words_no_stop_words = self.ws.segment_sentences(sentences=sentences, 
-                                                    lower = lower, 
-                                                    use_stop_words = True,
-                                                    use_speech_tags_filter = False)
-
-        words_all_filters = self.ws.segment_sentences(sentences=sentences, 
-                                                    lower = lower, 
-                                                    use_stop_words = True,
-                                                    use_speech_tags_filter = True)
+        # text = util.as_text(text)
+        sentences = self.ss.segment(text) # 一个filter
+        sentences_list=list(sentences)
+        words_res=self.ws.segment_sentences(sentences_list)
         # 以上3个列表的属性完全一样, 区别只在是否去停词, 和词性
+        # TODO: 这里不一定需要返回list, 如果不需要的话, 尽量返回generator
         return util.AttrDict(
-                    sentences           = sentences, 
-                    words_no_filter     = words_no_filter, 
-                    words_no_stop_words = words_no_stop_words, 
-                    words_all_filters   = words_all_filters
+                    sentences           = sentences_list, 
+                    words_no_filter     = [list(i) for i in words_res[0]], 
+                    words_no_stop_words = [list(i) for i in words_res[1]], 
+                    words_all_filters   = [list(i) for i in words_res[2]]
                 )
     
         
 
 if __name__ == '__main__':
-    pass
+    testclass=Segmentation()
+    res=testclass.segment("她是这个世界上最为美丽的女子,没有之一,清水出芙蓉.但我不喜欢她,不是不喜欢长得漂亮的,是不喜欢自以为是的")
+    print(res.sentences)
+    print(res.words_no_filter)
+    print(res.words_no_stop_words)
+    print(res.words_all_filters)
