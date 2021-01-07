@@ -107,6 +107,20 @@ def convert2pagerank_matrix(matrix,rsp=0.15):
     matrix=matrix*(1-rsp)+rsp/n # 概率
     return matrix
 
+def solve_pagerank_matrix(matrix,tol=1e-6):
+    '''
+    用幂法解pagerank方程
+    '''
+    n=matrix.shape[0]
+    pr=np.ones(n)
+    pr=pr/n
+    while True:
+        new_pr=matrix@pr
+        if(np.sum((new_pr-pr)**2)<tol):
+            break
+        pr=new_pr
+    return pr/np.sum(pr) # 按理来说, pr应该保持和为1,但是舍入误差保证不了
+
 #  build_word_cooccurence_matrix的测试
 # build_word_cooccurence_matrix([[1,7,3,2,9,5,4],[3,1,2,5,4],[5,3,7,1,9]])
 
