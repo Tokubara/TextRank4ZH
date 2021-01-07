@@ -145,7 +145,7 @@ class SentenceSegmentation(object):
             text, res = res, []
             for seq in text:
                 res += seq.split(sep)
-        return filter(lambda x:len(x)>0, map(lambda x:x.strip(),res)) # 去除空白, 我总感觉这里还需要filter
+        return filter(lambda x:len(x)>=self.min_sentence_len, map(lambda x:x.strip(),res)) # 去除空白, 我总感觉这里还需要filter
         
 class Segmentation(object):
     

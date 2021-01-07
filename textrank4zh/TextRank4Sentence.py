@@ -7,76 +7,48 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals)
 
-import networkx as nx
 import numpy as np
 
 # from . import util
-from Segmentation import Segmentation
-import util
+from PageRank import PageRank
+from TextProcessor import TextProcessor
+import codecs
+from util import AttrDict
+import math
 # import Segmentation
-
-class TextRank4Sentence(object):
-    
-    def __init__(self, stop_words_file = None, 
-                 allow_speech_tags = util.allow_speech_tags,
-                 delimiters = util.sentence_delimiters):
-        """
-        Keyword arguments:
-        stop_words_file  --  str，停止词文件路径，若不是str则是使用默认停止词文件
-        delimiters       --  默认值是`?!;？！。；…\n`，用来将文本拆分为句子。
-        
-        Object Var:
-        self.sentences               --  由句子组成的列表。
-        self.words_no_filter         --  对sentences中每个句子分词而得到的两级列表。
-        self.words_no_stop_words     --  去掉words_no_filter中的停止词而得到的两级列表。
-        self.words_all_filters       --  保留words_no_stop_words中指定词性的单词而得到的两级列表。
-        """
-        self.seg = Segmentation(stop_words_file=stop_words_file,
-                                allow_speech_tags=allow_speech_tags,
-                                delimiters=delimiters)
-        
-        self.sentences = None
-        self.words_no_filter = None     # 2维列表
-        self.words_no_stop_words = None
-        self.words_all_filters = None
-        
-        self.key_sentences = None
-        
-    def analyze(self, text, lower = False, 
-              source = 'no_stop_words', 
-              sim_func = util.get_similarity,
-              pagerank_config = {'alpha': 0.85,}):
-        """
-        Keyword arguments:
-        text                 --  文本内容，字符串。
-        lower                --  是否将文本转换为小写。默认为False。
-        source               --  选择使用words_no_filter, words_no_stop_words, words_all_filters中的哪一个来生成句子之间的相似度。
-                                 默认值为`'all_filters'`，可选值为`'no_filter', 'no_stop_words', 'all_filters'`。
-        sim_func             --  指定计算句子相似度的函数。
-        """
-        
-        self.key_sentences = []
-        
-        result = self.seg.segment(text=text, lower=lower)
-        self.sentences = result.sentences
-        self.words_no_filter = result.words_no_filter
-        self.words_no_stop_words = result.words_no_stop_words
-        self.words_all_filters   = result.words_all_filters
-        # 与word的analyze相比, seg实例和处理过程完全没有区别, 区别是传参
-        options = ['no_filter', 'no_stop_words', 'all_filters']
-        if source in options:
-            _source = result['words_'+source]
-        else:
-            _source = result['words_no_stop_words']
-
-        self.key_sentences = util.sort_sentences(sentences = self.sentences,
-                                                 words     = _source,
-                                                 sim_func  = sim_func,
-                                                 pagerank_config = pagerank_config)
-
+class TextRank4Sentence(PageRank):
+    def build_matrix(self, text_processor):
+        # text_processor.words_all_filters
+        n = len(text_processor.sentences)
+        self.matrix=np.zeros((n,n))
+        for i in range(n):
+            for j in range(i+1,n): # 对称矩阵
+                self.matrix[i,j]=TextRank4Sentence.sentence_similarity(text_processor.words_all_filters[i], text_processor.words_all_filters[j])
+        # self.num2item = text_processor.num2word[2]
+        self.matrix=np.maximum(self.matrix,self.matrix.T)
+        self.num2item=list(enumerate(text_processor.sentences))
+            # self.text_processor = text_processor # 这个地方存在共用, 可能会有问题
+    def analyze(self, text_processor):
+        self.build_matrix(text_processor)
+        super().analyze()
             
-    
-    
+    @staticmethod
+    def sentence_similarity(word_list1, word_list2):
+        """
+        基于词的共现情况计算两个句子相似度的函数
+        """
+        co_occur_num = len(set(word_list1) & set(word_list2))
+        if co_occur_num==0 or len(word_list1)==0 or len(word_list2)==0: # 有可能发生的, 有可能有的句子过滤词性后就为空
+            return 0 
+        denominator = math.log(len(word_list1)) + math.log(len(word_list2)) # 分母, 其实就是论文中的公式
+        if denominator<1e-12: # 也有可能长度都为1
+            return 0
+        return co_occur_num / denominator
 
 if __name__ == '__main__':
-    pass
+    textclass=TextRank4Sentence()
+    text = codecs.open("../data/期末报告.md", 'r', 'utf-8').read()
+    text_processor=TextProcessor(text)
+    textclass.analyze(text_processor)
+    print(list(textclass.get_top_items(10)))
+    # import pdb;pdb.set_trace()
