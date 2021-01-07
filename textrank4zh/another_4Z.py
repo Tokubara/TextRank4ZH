@@ -9,11 +9,13 @@
 #     pass
 
 import codecs
-from textrank4zh import TextRank4Keyword, TextRank4Sentence
+from TextRank4Keyword import TextRank4Keyword
+from TextRank4Sentence import TextRank4Sentence
+# import TextRank4Keyword, TextRank4Sentence
 import sys
 
 # import pdb; pdb.set_trace()
-text = codecs.open("期末报告.md", 'r', 'utf-8').read()
+text = codecs.open("../data/期末报告.md", 'r', 'utf-8').read()
 tr4w = TextRank4Keyword()
 
 tr4w.analyze(text=text, lower=True, window=2)  # py2中text必须是utf8编码的str或者unicode对象，py3中必须是utf8编码的bytes或者str对象

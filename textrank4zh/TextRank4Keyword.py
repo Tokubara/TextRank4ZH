@@ -10,8 +10,10 @@ from __future__ import (absolute_import, division, print_function,
 import networkx as nx
 import numpy as np
 
-from . import util
-from .Segmentation import Segmentation
+# from . import util
+import util
+from Segmentation import Segmentation
+# import Segmentation
 
 class TextRank4Keyword(object):
     
