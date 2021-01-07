@@ -10,8 +10,6 @@ from __future__ import (absolute_import, division, print_function,
 import networkx as nx
 import numpy as np
 
-# from . import util
-import util
 import itertools
 from collections import namedtuple
 from TextProcessor import TextProcessor
@@ -34,7 +32,7 @@ class PageRank(abc.ABC):
         '''
         if not hasattr(self,"matrix"):
             raise KeyError("no attribute matrix, you must call build_matrix() before calling analyze()")
-        self.pagerank_matrix = util.convert2pagerank_matrix(self.matrix) # TODO 看起来有点浪费内存, 到底需要保存哪些
+        self.pagerank_matrix = PageRank.convert2pagerank_matrix(self.matrix) # TODO 看起来有点浪费内存, 到底需要保存哪些
         self.pr = self.solve_pagerank_matrix(self.pagerank_matrix)
         # 得到了每一个词的概率分布
         self.pr_argsort = np.argsort(-self.pr) # 从大到小
@@ -75,7 +73,7 @@ class PageRank(abc.ABC):
 
 class TextRank4Keyword(PageRank):
     def build_matrix(self, text_processor):
-        self.matrix = self.build_word_cooccurence_matrix(len(self.num2word[2]),text_processor.doc_list_in_num[2])
+        self.matrix = self.build_word_cooccurence_matrix(len(text_processor.num2word[2]),text_processor.doc_list_in_num[2])
         self.num2item = text_processor.num2word
             # self.text_processor = text_processor # 这个地方存在共用, 可能会有问题,
     def analyze(self, text_processor):
@@ -101,7 +99,7 @@ if __name__ == '__main__':
     textclass=TextRank4Keyword()
     text = codecs.open("../data/期末报告.md", 'r', 'utf-8').read()
     text_processor=TextProcessor(text)
-    text_processor.word2num()
+    text_processor.get_word2num()
     textclass.analyze(text_processor)
-    print(textclass.get_top_items(10))
+    print(list(textclass.get_top_items(10)))
     # import pdb;pdb.set_trace()

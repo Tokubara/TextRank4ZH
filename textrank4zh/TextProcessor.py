@@ -36,22 +36,21 @@ class TextProcessor(object):
         """
         # 初始化参数
         self.text = text
-        
-        self.seg = Segmentation(stop_words_file=stop_words_file, 
-                                allow_speech_tags=allow_speech_tags, 
-                                delimiters=delimiters)
         self.allow_speech_tags = allow_speech_tags or TextProcessor.allow_speech_tags
         self.delimiters = delimiters or TextProcessor.sentence_delimiters
-        # 处理      
+        self.seg = Segmentation(stop_words_file=stop_words_file, 
+                                allow_speech_tags=self.allow_speech_tags, 
+                                delimiters=self.delimiters)
+        # 处理
         result = self.seg.segment(text=text, lower=lower)
         self.sentences = result.sentences
         self.words_no_filter = result.words_no_filter
         self.words_no_stop_words = result.words_no_stop_words
         self.words_all_filters   = result.words_all_filters
-        self.num2word = list(None,None,None)
-        self.word2num = list(None,None,None)
-        self.doc_list_in_num = list(None,None,None)
-    def word2num(self,mode=2):
+        self.num2word = list([None,None,None])
+        self.word2num = list([None,None,None])
+        self.doc_list_in_num = list([None,None,None])
+    def get_word2num(self,mode=2):
         '''
         mode 0表示对未过滤停词的转化, 1表示对未词性过滤的转换, 2表示全过滤转换
         '''
