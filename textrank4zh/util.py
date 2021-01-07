@@ -84,16 +84,28 @@ def word2num(doc_list):
     doc_list_in_num=[list(map(lambda x:word2num[x], doc)) for doc in doc_list] # 这里要不要返回list?
     return num2word, word2num, doc_list_in_num
 
-def build_word_cooccurence_matrix(num2word,doc_list_in_num,window=2):
-    '''接受的已经是一个数的列表'''
-    matrix_size = len(num2word)
+def build_word_cooccurence_matrix(n,doc_list_in_num,window=2):
+    '''接受的已经是一个数的列表
+    n表示总的状态数
+    '''
+    matrix_size = n
     word_matrix=np.zeros((matrix_size,matrix_size))
     for doc in doc_list_in_num:
-        for i in range(len(doc)-2):
-            for j in range(i+1,i+1+window):
+        for i in range(len(doc)-1):
+            for j in range(i+1,min(i+1+window,len(doc))):
                 word_matrix[min(doc[i],doc[j]),max(doc[i],doc[j])]+=1
     word_matrix=np.maximum(word_matrix,word_matrix.T)
     return word_matrix
+
+def convert2pagerank_matrix(matrix,rsp=0.15):
+    '''
+    通用方法, 将一个不规则的matrix(必须是方阵), 这个matrix的列可能全为0, 列和也不唯一的转化为pagerank矩阵, 列和为1. 列表示状态的转移概率.
+    '''
+    n=matrix.shape[0]
+    matrix[:,np.all(matrix==0,axis=0)]=1 # 全0列的转换
+    matrix=matrix/np.sum(matrix,axis=0) # 单位化
+    matrix=matrix*(1-rsp)+rsp/n # 概率
+    return matrix
 
 #  build_word_cooccurence_matrix的测试
 # build_word_cooccurence_matrix([[1,7,3,2,9,5,4],[3,1,2,5,4],[5,3,7,1,9]])
