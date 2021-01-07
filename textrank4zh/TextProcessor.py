@@ -44,8 +44,11 @@ if __name__ == '__main__':
     # 测试
     text = codecs.open("../data/期末报告.md", 'r', 'utf-8').read()
     text_processor=TextProcessor(text)
+    print(text_processor.sentences)
+    print(text_processor.words_no_filter)
+    print(text_processor.words_all_filters)
     # import pdb; pdb.set_trace()
-    sentences_len=[len(i) for i in text_processor.sentences]
-    sort_res=sorted(enumerate(sentences_len),key=itemgetter(1))
-    text_processor.sentences[156]
-    a=1
+    # sentences_len=[len(i) for i in text_processor.sentences]
+    # sort_res=sorted(enumerate(sentences_len),key=itemgetter(1))
+    # text_processor.sentences[156]
+    # a=1
