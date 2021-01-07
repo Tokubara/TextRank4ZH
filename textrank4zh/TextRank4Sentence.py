@@ -75,21 +75,7 @@ class TextRank4Sentence(object):
                                                  pagerank_config = pagerank_config)
 
             
-    def get_key_sentences(self, num = 6, sentence_min_len = 6):
-        """获取最重要的num个长度大于等于sentence_min_len的句子用来生成摘要。
-
-        Return:
-        多个句子组成的列表。
-        """
-        result = []
-        count = 0
-        for item in self.key_sentences:
-            if count >= num:
-                break
-            if len(item['sentence']) >= sentence_min_len:
-                result.append(item)
-                count += 1
-        return result
+    
     
 
 if __name__ == '__main__':
