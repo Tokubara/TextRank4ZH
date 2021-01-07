@@ -10,6 +10,7 @@ from __future__ import (absolute_import, division, print_function,
 import jieba.posseg as pseg
 import codecs
 import os
+from operator import attrgetter
 
 # from . import util
 import util
@@ -38,7 +39,7 @@ class WordSegmentation(object):
         for word in codecs.open(self.stop_words_file, 'r', 'utf-8', 'ignore'):
             self.stop_words.add(word.strip())
     
-    def segment(self, text, lower = True, use_stop_words = True, use_speech_tags_filter = False):
+    def segment(self, text, lower = False, use_stop_words = True, use_speech_tags_filter = False):
         """对一段文本进行分词(jieba.posseg.cut)，返回list类型的分词结果, 做了这些处理: 去除特殊符号(词性为x的词), 去空, 去停用词
 
         Keyword arguments:
@@ -47,24 +48,29 @@ class WordSegmentation(object):
         use_speech_tags_filter -- 是否基于词性进行过滤。若为True，则使用self.default_speech_tag_filter过滤。否则，不过滤。    
         """
         text = util.as_text(text) # 只是一句话
-        jieba_result = pseg.cut(text) # 得到的是一个generator
-        
+        words_result = pseg.cut(text) # 得到的是一个generator
+        # 这里得先做, 否则不会保留分词信息
         if use_speech_tags_filter == True:
-            jieba_result = [w for w in jieba_result if w.flag in self.default_speech_tag_filter]
-        else:
-            jieba_result = [w for w in jieba_result]
+            # jieba_result = [w for w in jieba_result if w.flag in self.default_speech_tag_filter]
+            words_result = filter(lambda x:x.flag in self.default_speech_tag_filter, words_result)
+        # else:
+            # jieba_result = [w for w in jieba_result]
 
         # 去除特殊符号
-        word_list = [w.word.strip() for w in jieba_result if w.flag!='x'] #TODO 总感觉这里处理比较多余
-        word_list = [word for word in word_list if len(word)>0]
-        
-        if lower:
-            word_list = [word.lower() for word in word_list]
-
+        # 含有中文以外的词都去掉
+        words_result = filter(lambda x:len(x)>0 and util.is_all_chinese(x),map(lambda x: x.word.strip(),words_result)) # 去除含有中文以外字符,去除空格,去除为空的
         if use_stop_words:
-            word_list = [word.strip() for word in word_list if word.strip() not in self.stop_words]
+            words_result = filter(lambda x: x not in self.stop_words, words_result)
+        # word_list = [w.word.strip() for w in jieba_result if w.flag!='x']
+        # word_list = [word for word in word_list if len(word)>0]
+        
+        # if lower:
+        #     word_list = [word.lower() for word in word_list]
 
-        return word_list
+        # if use_stop_words:
+        #     word_list = [word.strip() for word in word_list if word.strip() not in self.stop_words]
+
+        return list(words_result)
         
     def segment_sentences(self, sentences, lower=True, use_stop_words=True, use_speech_tags_filter=False):
         """将列表sequences中的每个元素/句子转换为由单词构成的列表。大概长这样: [['从', '施剑翘', '杀', '孙传芳', '案', '看', ...], ['解题'], ['民国时期', '是', '司法', '史', '一个', '特殊', ...], ['有', '如下', '原因'], ['中国', '有着', '几千年', '的', '宗法', '礼教', ...], ['到', '清末', '民初', '司法', '领域', '发生', ...], ...]
@@ -83,12 +89,13 @@ class WordSegmentation(object):
 class SentenceSegmentation(object):
     """ 分句 """
     
-    def __init__(self, delimiters=util.sentence_delimiters):
+    def __init__(self, delimiters=util.sentence_delimiters,min_sentence_len=4):
         """
         Keyword arguments:
         delimiters -- 可迭代对象，用来拆分句子
         """
         self.delimiters = set([util.as_text(item) for item in delimiters])
+        self.min_sentence_len=min_sentence_len
     
     def segment(self, text):
         res = [util.as_text(text)] # 初始只有一个元素
@@ -100,21 +107,21 @@ class SentenceSegmentation(object):
             text, res = res, []
             for seq in text:
                 res += seq.split(sep)
-        res = [s.strip() for s in res if len(s.strip()) > 0] # 去除空白, 我总感觉这里还需要filter
+        res = [s.strip() for s in res if len(s.strip()) > self.min_sentence_len] # 去除空白, 我总感觉这里还需要filter
         return res 
         
 class Segmentation(object):
     
     def __init__(self, stop_words_file = None, 
                     allow_speech_tags = util.allow_speech_tags,
-                    delimiters = util.sentence_delimiters):
+                    delimiters = util.sentence_delimiters, min_sentence_len=4):
         """
         Keyword arguments:
         stop_words_file -- 停止词文件
         delimiters      -- 用来拆分句子的符号集合
         """
         self.ws = WordSegmentation(stop_words_file=stop_words_file, allow_speech_tags=allow_speech_tags)
-        self.ss = SentenceSegmentation(delimiters=delimiters)
+        self.ss = SentenceSegmentation(delimiters=delimiters,min_sentence_len=min_sentence_len)
         
     def segment(self, text, lower = False):
         '''

@@ -63,6 +63,10 @@ else:
 
 __DEBUG = None
 
+def is_all_chinese(str):
+    '''判断字符串是否全由中文构成'''
+    return all(map(lambda char:'\u4e00' <= char <= '\u9fa5', str))
+
 def debug(*args):
     global __DEBUG
     if __DEBUG is None:
