@@ -1,27 +1,26 @@
 import codecs
 from TextRank4Keyword import TextRank4Keyword
 from TextRank4Sentence import TextRank4Sentence
-# import TextRank4Keyword, TextRank4Sentence
+from TextProcessor import TextProcessor
 import sys
+import time
+import pprint
 
 text = codecs.open("../data/期末报告.md", 'r', 'utf-8').read()
-tr4w = TextRank4Keyword()
+t0=time.time()
+text_processor=TextProcessor(text)
+t1=time.time()
+text_processor.get_word2num() # 仅在关键词的时候需要
 
-tr4w.analyze(text=text, lower=True, window=2)  # py2中text必须是utf8编码的str或者unicode对象，py3中必须是utf8编码的bytes或者str对象
+t2=time.time()
+textrank_keyword = TextRank4Keyword()
+textrank_keyword.analyze(text_processor)
+t3=time.time()
 
-print( '关键词：' )
-for item in tr4w.get_keywords(20, word_min_len=1):
-    print(item.word, item.weight)
-
+textrank_sentence = TextRank4Sentence()
+textrank_sentence.analyze(text_processor)
+t4=time.time()
+pprint.pprint(list(textrank_keyword.get_top_items(10)))
 print()
-print( '关键短语：' )
-for phrase in tr4w.get_keyphrases(keywords_num=20, min_occur_num= 2):
-    print(phrase)
-
-tr4s = TextRank4Sentence()
-tr4s.analyze(text=text, lower=True, source = 'all_filters')
-
-print()
-print( '摘要：' )
-for item in tr4s.get_key_sentences(num=3):
-    print(item.index, item.weight, item.sentence)  # index是语句在文本中位置，weight是权重
+pprint.pprint(list(textrank_sentence.get_top_items(10)))
+print("处理分词用时:{:.5f}s,计算词用时{:.5f}s, 计算句用时:{:.5f}s".format(t1-t0,t3-t2,t4-t3))
