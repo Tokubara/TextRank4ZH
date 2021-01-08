@@ -42,7 +42,8 @@ class TextProcessor(object):
         '''
         mode 0表示对未过滤停词的转化, 1表示对未词性过滤的转换, 2表示全过滤转换
         '''
-        self.num2word[mode], self.word2num[mode], self.doc_list_in_num[mode] = TextProcessor.word2num((self.words_no_filter,self.words_no_stop_words,self.words_all_filters)[mode])
+        if self.num2word[0] is None:
+            self.num2word[mode], self.word2num[mode], self.doc_list_in_num[mode] = TextProcessor.word2num((self.words_no_filter,self.words_no_stop_words,self.words_all_filters)[mode])
     @staticmethod
     def is_all_chinese(str):
         '''判断字符串是否全由中文构成'''

@@ -6,17 +6,17 @@ import codecs
 
 class TextRank4Keyword(PageRank):
     def build_matrix(self, text_processor):
+        '''text_processor是TextProcessor的实例'''
         self.matrix = self.build_word_cooccurence_matrix(len(text_processor.num2word[2]),text_processor.doc_list_in_num[2])
         self.num2item = text_processor.num2word[2]
-            # self.text_processor = text_processor # 这个地方存在共用, 可能会有问题,
     def analyze(self, text_processor):
+        text_processor.get_word2num()
         self.build_matrix(text_processor)
         super().analyze()
     @staticmethod
     def build_word_cooccurence_matrix(n,doc_list_in_num,window=2):
         '''
-        接受的已经是一个数的列表
-        n表示总的状态数
+        n:总的状态数(词数),doc_list_in_num:文档的数表示
         '''
         matrix_size = n
         word_matrix=np.zeros((matrix_size,matrix_size))
@@ -35,4 +35,3 @@ if __name__ == '__main__':
     textclass.analyze(text_processor)
     import pprint
     pprint.pprint(list(textclass.get_top_items(10)))
-
