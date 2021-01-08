@@ -36,8 +36,13 @@ class TextRank4Sentence(PageRank):
 
 if __name__ == '__main__':
     import pprint
+    import time
     textclass=TextRank4Sentence()
     text = codecs.open("../data/期末报告.md", 'r', 'utf-8').read()
+    t0=time.time()
     text_processor=TextProcessor(text)
+    t1=time.time()
     textclass.analyze(text_processor)
+    t2=time.time()
     pprint.pprint(list(textclass.get_top_items(10)))
+    print("处理分词用时:{},计算用时:{}".format(t1-t0,t2-t1))

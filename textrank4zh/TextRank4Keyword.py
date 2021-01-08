@@ -33,5 +33,6 @@ if __name__ == '__main__':
     text_processor=TextProcessor(text)
     text_processor.get_word2num()
     textclass.analyze(text_processor)
-    print(list(textclass.get_top_items(10)))
+    import pprint
+    pprint.pprint(list(textclass.get_top_items(10)))
 
