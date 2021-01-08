@@ -1,22 +1,10 @@
-#-*- encoding:utf-8 -*-
-"""
-@author:   letian
-@homepage: http://www.letiantian.me
-@github:   https://github.com/someus/
-"""
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-
 import codecs
 import jieba.posseg as pseg
 import codecs
 import os
 from operator import attrgetter
 import itertools
-# from TextProcessor import TextProcessor
 
-# from . import util
 import util
 
 class TextProcessor(object):
@@ -197,8 +185,3 @@ if __name__ == '__main__':
     print(text_processor.sentences)
     print(text_processor.words_no_filter)
     print(text_processor.words_all_filters)
-    # import pdb; pdb.set_trace()
-    # sentences_len=[len(i) for i in text_processor.sentences]
-    # sort_res=sorted(enumerate(sentences_len),key=itemgetter(1))
-    # text_processor.sentences[156]
-    # a=1

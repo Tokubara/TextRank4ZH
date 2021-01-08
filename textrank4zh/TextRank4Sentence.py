@@ -1,21 +1,10 @@
-#-*- encoding:utf-8 -*-
-"""
-@author:   letian
-@homepage: http://www.letiantian.me
-@github:   https://github.com/someus/
-"""
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
 import numpy as np
-
-# from . import util
 from PageRank import PageRank
 from TextProcessor import TextProcessor
 import codecs
 from util import AttrDict
 import math
-# import Segmentation
+
 class TextRank4Sentence(PageRank):
     def build_matrix(self, text_processor):
         # text_processor.words_all_filters
@@ -46,9 +35,9 @@ class TextRank4Sentence(PageRank):
         return co_occur_num / denominator
 
 if __name__ == '__main__':
+    import pprint
     textclass=TextRank4Sentence()
     text = codecs.open("../data/期末报告.md", 'r', 'utf-8').read()
     text_processor=TextProcessor(text)
     textclass.analyze(text_processor)
-    print(list(textclass.get_top_items(10)))
-    # import pdb;pdb.set_trace()
+    pprint.pprint(list(textclass.get_top_items(10)))

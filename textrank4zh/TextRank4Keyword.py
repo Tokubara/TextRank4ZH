@@ -1,13 +1,3 @@
-#-*- encoding:utf-8 -*-
-"""
-@author:   letian
-@homepage: http://www.letiantian.me
-@github:   https://github.com/someus/
-"""
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals)
-
-
 from TextProcessor import TextProcessor
 from PageRank import PageRank
 import numpy as np
@@ -37,9 +27,6 @@ class TextRank4Keyword(PageRank):
         word_matrix=np.maximum(word_matrix,word_matrix.T)
         return word_matrix
 
-
-    
-
 if __name__ == '__main__':
     textclass=TextRank4Keyword()
     text = codecs.open("../data/期末报告.md", 'r', 'utf-8').read()
@@ -47,4 +34,4 @@ if __name__ == '__main__':
     text_processor.get_word2num()
     textclass.analyze(text_processor)
     print(list(textclass.get_top_items(10)))
-    # import pdb;pdb.set_trace()
+
